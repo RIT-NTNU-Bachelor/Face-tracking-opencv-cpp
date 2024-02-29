@@ -58,6 +58,19 @@ void detect_eyes(Mat& img){
 }
 
 
+void add_text_data(Mat& img){
+    const string image_text = to_string(img.cols) + "x" + to_string(img.rows);
+
+    cv::putText(img, //target image
+            image_text, //text
+            cv::Point(img.cols*0.80, img.rows*0.95), //top-left position
+            cv::FONT_HERSHEY_DUPLEX,
+            1.0,
+            CV_RGB(255, 0, 0), //font color
+            2);
+}
+
+
 
 
 
@@ -71,7 +84,7 @@ int main(){
 
         // Detect faces and eyes
         detect_faces(img);
-        //detect_eyes(img); 
+        add_text_data(img);
 
 
         imshow("Detected Faces", img);  // display img
