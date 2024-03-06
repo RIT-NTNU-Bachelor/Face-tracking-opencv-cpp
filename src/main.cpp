@@ -7,15 +7,14 @@
 #include <vector>
 #include <string>
 
+#include "draw_x.cpp"
+#include "draw_percentage.cpp"
+#include "depth.cpp"
+
 
 using namespace cv;
 using namespace std;
 
-
-// Constants that may change over time as the app
-
-int x_size = 0;
-int y_size = 0;
 
 // Function to draw bounding box abound detected frontal face
 // Input: image
@@ -44,7 +43,7 @@ void detect_faces(Mat& img)
      rectangle(img, face.tl(), face.br(), Scalar(255, 0, 255), 3);
 }
 
-void draw_x_distance(Mat& img)
+void draw_coord(Mat& img, bool calibrate)
 {
 
   CascadeClassifier face_cascade;
@@ -66,104 +65,13 @@ void draw_x_distance(Mat& img)
   for(auto& face : faces){
     // Drawing a line from the left border to the right border for each detected face
 
-    // Calculate the vertical center of the face
-    int y = face.y + face.height / 2;
+    int x = draw_x(img, face);
 
-    // Calculate the center of the face 
-    int x = face.x + face.width/2;
+    float percentage = draw_percentage(img, x);
 
-    // Draw a line from the left border (x=0) to the right border (x=img.cols)
-    line(img, Point(0, y), Point(x, y), Scalar(0, 0, 255), 3);
-
-    // Add the infomation of the length of x
-    string image_text = "X-distance: " + to_string(x) + " unit";
-
-    cv::putText(img, //target image
-            image_text, //text
-            cv::Point(0, y-20), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            1,
-            CV_RGB(0, 0, 0), //font color
-            2);
-
-
-    // Add percentage text
-    int width = img.cols; 
-    float percentage = (static_cast<float>(x) / width) * 100;
-
-    // Round to 2 decimal places
-    percentage = roundf(percentage*100)/100;
-    image_text = to_string(percentage) + "%";
-    cv::putText(img, //target image
-            image_text, //text
-            cv::Point(0, img.rows - 20), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            1,
-            CV_RGB(0, 0, 0), //font color
-            2);
+    int depth = calulate_depth(img, calibrate, face);
   }
 
-}
-
-// Function to draw bounding box abound detected frontal face
-// Input: image
-// Output: void
-void detect_depth(Mat& img, bool calibrate)
-{
-
-  CascadeClassifier face_cascade;
-
-  face_cascade.load("models/haarcascade_frontalface_default.xml");
-
-
-  if(face_cascade.empty())
-    cout << "Classifier has not been loaded!\n";
-
-  // creating rect for printing bounding box around detected faces
-  vector<Rect> faces;
-  
-  // Detects objects of different sizes in the input image.   
-  // The detected objects are returned as a list of rectangles.
-  face_cascade.detectMultiScale(img, faces, 1.1,10); 
- 
-  // drawing bounding box around detected faces
-  for(auto& face : faces){
-    rectangle(img, face.tl(), face.br(), Scalar(255, 0, 255), 3);
-
-    if (calibrate){
-        x_size = face.width;
-        y_size = face.height;
-        calibrate = false;
-    }
-
-    string image_text;
-
-    // If the depth has been calibrated 
-    if (x_size != 0 && y_size != 0){
-        int box_size = face.width * face.height;
-        int org_box_size = x_size * y_size;
-
-        float percentage = (static_cast<float>(org_box_size) / box_size) * 100;
-        // Round to 2 decimal places
-        percentage = roundf(percentage*100)/100;
-
-        image_text = "Z = " + to_string(percentage) + " m";
-    }else {
-        // Else set unknown z distance 
-        image_text = "Z = ?";
-    }
-
-    // Put distance text at the bottom of the box that is around the face
-    cv::putText(img, 
-        image_text, 
-        cv::Point(face.x, face.y + face.width + 25),
-        cv::FONT_HERSHEY_DUPLEX,
-        0.7,
-        CV_RGB(0, 150, 150),
-        2);
-
-  }
-     
 }
 
 void detect_eyes(Mat& img){
@@ -213,7 +121,7 @@ int main(){
         v_cap.read(img);            
 
         // Detect faces and eyes
-        detect_depth(img, calibrate);
+        draw_coord(img, calibrate);
         add_text_data(img);
 
 
