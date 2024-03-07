@@ -8,12 +8,27 @@
 #include <string>
 
 #include "draw_x.cpp"
+#include "draw_y.cpp"
 #include "draw_percentage.cpp"
 #include "depth.cpp"
 
 
 using namespace cv;
 using namespace std;
+
+
+void add_translation_cord_text(Mat& img, int x, int y, int z){
+  const string image_text = "X= " + to_string(x) + " , " + "Y= " + to_string(y) + " , " + "Z= " + to_string(z);
+
+  cv::putText(img, //target image
+          image_text, //text
+          cv::Point(img.cols*0.10, img.rows*0.95), //top-left position
+          cv::FONT_HERSHEY_DUPLEX,
+          1.0,
+          CV_RGB(255, 0, 0), //font color
+          2);
+
+}
 
 
 // Function to draw bounding box abound detected frontal face
@@ -43,7 +58,7 @@ void detect_faces(Mat& img)
      rectangle(img, face.tl(), face.br(), Scalar(255, 0, 255), 3);
 }
 
-void draw_coord(Mat& img, bool calibrate)
+void draw_coord(Mat& img, bool calibrate, bool hide_x_y_z)
 {
 
   CascadeClassifier face_cascade;
@@ -65,11 +80,15 @@ void draw_coord(Mat& img, bool calibrate)
   for(auto& face : faces){
     // Drawing a line from the left border to the right border for each detected face
 
-    int x = draw_x(img, face);
+    int x = draw_x(img, face, hide_x_y_z);
+    int y = draw_y(img, face, hide_x_y_z);
 
-    float percentage = draw_percentage(img, x);
+    // For drawing percentage
+    //float percentage = draw_percentage(img, x);
 
-    int depth = calulate_depth(img, calibrate, face);
+    int z = calulate_depth(img, calibrate, face, hide_x_y_z);
+
+    add_translation_cord_text(img,x,y,z);
   }
 
 }
@@ -96,17 +115,16 @@ void detect_eyes(Mat& img){
 
 
 void add_text_data(Mat& img){
-    const string image_text = to_string(img.cols) + "x" + to_string(img.rows);
+  const string image_text = to_string(img.cols) + "x" + to_string(img.rows);
 
-    cv::putText(img, //target image
-            image_text, //text
-            cv::Point(img.cols*0.80, img.rows*0.95), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            1.0,
-            CV_RGB(255, 0, 0), //font color
-            2);
+  cv::putText(img, //target image
+          image_text, //text
+          cv::Point(img.cols*0.80, img.rows*0.95), //top-left position
+          cv::FONT_HERSHEY_DUPLEX,
+          1.0,
+          CV_RGB(255, 0, 0), //font color
+          2);
 }
-
 
 
 
@@ -115,22 +133,25 @@ int main(){
     VideoCapture v_cap(0);    // 0: default webcam
     Mat img;
     
+    bool hide_x_y_z = false; 
     bool calibrate = false;
     while (true){                 //once v_cap frame read is over
     
         v_cap.read(img);            
 
         // Detect faces and eyes
-        draw_coord(img, calibrate);
+        draw_coord(img, calibrate, hide_x_y_z);
         add_text_data(img);
 
 
         imshow("Detected Faces", img);  // display img
 
         int key = cv::waitKey(30);
-        if (key == 32) { // ASCII value for spacebar is 32
-            calibrate = true;
-        } else {
+        if (key == 32) { // ASCII value for spacebar
+          calibrate = true;
+        } else if (key == 104){ //ASCII value for lowercase h
+          hide_x_y_z = !hide_x_y_z;
+        }else {
             calibrate = false;
         }
 
