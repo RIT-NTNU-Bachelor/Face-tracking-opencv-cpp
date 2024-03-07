@@ -1,0 +1,41 @@
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/objdetect/objdetect.hpp>  // for cascade classifier 
+#include <iostream>
+#include <vector>
+#include <string>
+
+
+using namespace cv;
+using namespace std;
+
+
+int draw_y(Mat& img, cv::Rect &face, bool hide){
+
+    // Calculate the vertical center of the face
+    int y = face.y + face.height / 2;
+
+    // Calculate the center of the face 
+    int x = face.x + face.width/2;
+
+
+    if(!hide){
+        // Draw a line from the left border (x=0) to the right border (x=img.cols)
+        line(img, Point(x, 0), Point(x, y), Scalar(0, 0, 255), 3);
+
+        // Add the infomation of the length of x
+        string image_text = "Y-distance: " + to_string(y) + " unit";
+
+        cv::putText(img, //target image
+                image_text, //text
+                cv::Point(x, y), //top-left position
+                cv::FONT_HERSHEY_DUPLEX,
+                1,
+                CV_RGB(255, 0, 0), //font color
+                2);
+    }
+    
+    return y;
+}
