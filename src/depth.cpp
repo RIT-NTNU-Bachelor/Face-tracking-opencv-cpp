@@ -17,7 +17,7 @@ int x_size = 0;
 int y_size = 0;
 
 
-int calulate_depth(Mat& img, bool calibrate, cv::Rect &face){
+int calulate_depth(Mat& img, bool calibrate, cv::Rect &face, bool hide){
 
     if (calibrate){
         x_size = face.width;
@@ -38,31 +38,38 @@ int calulate_depth(Mat& img, bool calibrate, cv::Rect &face){
         // Round to 2 decimal places
         percentage = roundf(percentage*100)/100;
 
-        image_text = "Z = " + to_string(percentage) + " m";
+        if (!hide){
+            image_text = "Z = " + to_string(percentage) + " m";
 
-        // Put distance text at the bottom of the box that is around the face
-        cv::putText(img, 
-            image_text, 
-            cv::Point(face.x, face.y + face.width + 25),
-            cv::FONT_HERSHEY_DUPLEX,
-            0.7,
-            CV_RGB(0, 150, 150),
-            2);
-
+            // Put distance text at the bottom of the box that is around the face
+            cv::putText(img, 
+                image_text, 
+                cv::Point(face.x, face.y + face.width + 25),
+                cv::FONT_HERSHEY_DUPLEX,
+                0.7,
+                CV_RGB(0, 150, 150),
+                2);
+        }
 
         return percentage;
     }else {
-        // Else set unknown z distance 
-        image_text = "Z = ?";
 
-        // Put distance text at the bottom of the box that is around the face
-        cv::putText(img, 
-            image_text, 
-            cv::Point(face.x, face.y + face.width + 25),
-            cv::FONT_HERSHEY_DUPLEX,
-            0.7,
-            CV_RGB(0, 150, 150),
-            2);
+        if(!hide){
+            // Else set unknown z distance 
+            image_text = "Z = ?";
+
+            // Put distance text at the bottom of the box that is around the face
+            cv::putText(img, 
+                image_text, 
+                cv::Point(face.x, face.y + face.width + 25),
+                cv::FONT_HERSHEY_DUPLEX,
+                0.7,
+                CV_RGB(0, 150, 150),
+                2);
+
+        }
+        
+        
 
         return 0;
     }
