@@ -33,7 +33,7 @@ int draw_y(Mat& img, cv::Rect &face, bool hide){
                 cv::Point(x, y), //top-left position
                 cv::FONT_HERSHEY_DUPLEX,
                 1,
-                CV_RGB(255, 0, 0), //font color
+                CV_RGB(0, 0, 0), //font color
                 2);
     }
     
